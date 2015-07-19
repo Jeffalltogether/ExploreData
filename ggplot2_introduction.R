@@ -80,3 +80,9 @@ g + geom_point(alpha=1/3) +
   labs(y = "Petal Length") +
   labs(title = "Iris Sepal vs. Petal Length by Sepal Width")
 
+
+## When to use the transform function
+library(datasets)
+data(airquality)
+airquality = transform(airquality, Month = factor(Month))
+qplot(Wind, Ozone, data = airquality, facets = . ~ Month)
