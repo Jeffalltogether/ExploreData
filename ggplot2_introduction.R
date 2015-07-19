@@ -42,5 +42,41 @@ g + geom_point(aes(color = Species)) +
         theme_bw(base_family = "Times")  ## Changes theme to Black & White and font to Times
 
 ## Axis Limits
+testdata <- data.frame(x = seq(1,100,by=1), y = rnorm(100))
+testdata[50,2] <- 100
 
+# in the base plot function, this works fine to not stretch the ylimit to include the outlier
+plot(testdata$x, testdata$y, type = "l", ylim = c(-3,3))
+
+g <- ggplot(testdata, aes(x = x, y = y)) + geom_line()
+g
+
+# In ggplot, this creates a break in the data because it will subset the data to only include what is within the ylimit
+g + ylim(-3, 3)
+
+# to get the correct plot, we must call the coord_cartesian() function
+g + coord_cartesian(ylim = c(-3, 3))
+
+## What to do when the third variable is not categoricle
+# binning a continuous dataset
+
+# Calculate the deciles of the data
+cutpoints <- quantile(iris$Sepal.Width, seq(0, 1, length = 4), na.rm = TRUE)
+
+# cut the data at the deciles and create a new factor variable
+iris$sepalWdthQuant <- cut(iris$Sepal.Width, cutpoints)
+
+# see the leves of the newly created factor varialbe
+levels(iris$sepalWdthQuant)
+
+# Plot the data
+g <- ggplot(iris, aes(Sepal.Length, Petal.Length))
+
+g + geom_point(alpha=1/3) +
+  facet_wrap(Species ~ sepalWdthQuant, ncol = 3, nrow = 4) +  # remember difference between facet_grid & facet_wrap!
+  geom_smooth(method = "lm", se = FALSE, col = "steelblue") +
+  theme_bw(base_family = "Avenir", base_size = 10) +
+  labs(x = "Sepal Length") +
+  labs(y = "Petal Length") +
+  labs(title = "Iris Sepal vs. Petal Length by Sepal Width")
 
