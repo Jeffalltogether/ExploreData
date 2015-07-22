@@ -59,7 +59,7 @@ dev.off()
 ## answer this question.
 DF3 <- NEI %>%
         select(fips, year, type, Emissions) %>%
-        filter(fips == 24510) %>%
+        filter(fips == "24510") %>%
         group_by(type, year) %>%
         summarize(PM25 = mean(Emissions))
 
@@ -76,15 +76,21 @@ CoalCat <- SCC %>%
         select(SCC)
 
 NEIsub <- NEI %>%
-        select(year, SCC , Emissions)
+        select(year, SCC , Emissions) %>%
+        rename(PM25 = Emissions)
 
-CoalMerged <- left_join(CoalCat, NEIsub, by = "SCC") #warnings; slow execution time
+CoalMerged <- left_join(CoalCat, NEIsub, by = "SCC") %>% #warnings; slow execution time
+
 CoalMerged <- na.omit(CoalMerged)
 
-ggplot(CoalMerged, aes(factor(year), Emissions)) + geom_boxplot()
+DF4 <- CoalMerged %>%
+        group_by(year) %>%        
+        summarize(PM25 = mean(PM25))
         
 
 
+ggplot(CoalMerged, aes(year, PM25)) + geom_point(size = 4, alpha = 0.5) + geom_smooth(method = "lm")
+        
 ## 5 - How have emissions from motor vehicle sources changed from 1999-2008 in 
 ## Baltimore City?
 VehicleCat <- SCC %>%
@@ -94,13 +100,19 @@ VehicleCat <- SCC %>%
 
 NEIsub <- NEI %>%
         select(fips, year, SCC , Emissions) %>%
-        filter(fips == 24510)
+        rename(PM25 = Emissions) %>%
+        filter(fips == "24510")
 
 VehicleMerged <- left_join(VehicleCat, NEIsub, by = "SCC") #warnings; slow execution time
 VehicleMerged <- na.omit(VehicleMerged)
 
-ggplot(VehicleMerged, aes(factor(year), Emissions)) + geom_point()
+ggplot(VehicleMerged, aes(year, PM25)) + 
+        geom_point(size = 4, alpha = 0.5) + 
+        geom_smooth(method = "lm") +
+        labs(title = "Motor Vehicle Emissions in Baltimore, MD")
 
+dev.copy(png, file = "plot5.png", width=500, height=300)
+dev.off()
 
 ## 6 - Compare emissions from motor vehicle sources in Baltimore City with 
 ## emissions from motor vehicle sources in Los Angeles County, California 
@@ -108,17 +120,29 @@ ggplot(VehicleMerged, aes(factor(year), Emissions)) + geom_point()
 #  vehicle emissions?
 NEIbaltimore <- NEI %>%
         select(fips, year, SCC , Emissions) %>%
-        filter(fips == 24510)
+        filter(fips == "24510") %>%
+        rename(PM25 = Emissions) 
 
 NEIla <- NEI %>%
-        select(fips, year, SCC , Emissions) %>%
-        filter(fips == 06037)
+        select(fips, year, SCC, Emissions) %>%
+        filter(fips == "06037") %>%
+        rename(PM25 = Emissions) 
 
 Baltimore <- left_join(VehicleCat, NEIbaltimore, by = "SCC") #warnings; slow execution time
+Baltimore <- na.omit(Baltimore)
 
 LA <- left_join(VehicleCat, NEIla, by = "SCC") #warnings; slow execution time
+LA <- na.omit(LA)
 
-BLA <- left_join(Baltimore, LA, by = "SCC")
-BLA <- na.omit(BLA)
+BLA <- bind_rows(Baltimore, LA)
+na.omit(BLA)
 
-plot 
+BLA2 <- BLA %>%
+        group_by(year,fips) %>%
+        summarize(avePM25 = mean(PM25))
+
+ggplot(BLA, aes(factor(year), log(PM25))) + 
+        geom_boxplot(aes(color = fips))
+
+dev.copy(png, file = "plot6.png", width=500, height=300)
+dev.off()
