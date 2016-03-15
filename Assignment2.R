@@ -17,7 +17,7 @@ NEI <- readRDS("./ExploreData_Data/summarySCC_PM25.rds")
 DF1 <- NEI %>%
         select(year, type, Emissions) %>%
         group_by(type, year) %>%
-        summarize(PM25 = sum(Emissions))
+        summarize(PM25 = mean(Emissions))  # because the number of meters changes from year-to-year, the average is a better represnetation.  It controlls for the increase owing to the placement of new meeters.
 
 model <- lm(PM25 ~ year, DF1)
 
@@ -41,7 +41,7 @@ DF2 <- NEI %>%
         select(fips, year, Emissions) %>%
         filter(fips == "24510") %>%
         group_by(year) %>%
-        summarize(PM25 = sum(Emissions))
+        summarize(PM25 = mean(Emissions))
 
 model <- lm(PM25 ~ year, DF2)
 
@@ -62,7 +62,7 @@ DF3 <- NEI %>%
         select(fips, year, type, Emissions) %>%
         filter(fips == "24510") %>%
         group_by(type, year) %>%
-        summarize(PM25 = sum(Emissions))
+        summarize(PM25 = mean(Emissions))
 
 qplot(year, PM25, facets = . ~ type, data=DF3, main = "PM25 by Source Type in Baltimore, MD", geom = c("point", "smooth"), method = "lm") +
         scale_x_continuous(breaks=c(1999, 2002, 2005, 2008)) +
